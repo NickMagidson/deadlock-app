@@ -96,5 +96,23 @@ export const rankAssetSchema = z
 
 export const rankAssetsSchema = z.array(rankAssetSchema)
 
+export const matchMetadataSchema = z
+  .object({
+    match_info: z.object({
+      players: z.array(
+        z
+          .object({
+            account_id: nonNegativeInteger,
+            hero_id: nonNegativeInteger,
+            kills: nonNegativeInteger,
+            deaths: nonNegativeInteger,
+            assists: nonNegativeInteger,
+          })
+          .passthrough(),
+      ),
+    }),
+  })
+  .passthrough()
+
 export type SteamProfile = z.infer<typeof steamProfileSchema>
 export type HeroStats = z.infer<typeof heroStatsSchema>
