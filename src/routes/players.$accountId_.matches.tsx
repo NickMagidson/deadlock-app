@@ -2,6 +2,7 @@ import { createFileRoute, notFound, useNavigate } from '@tanstack/react-router'
 
 import { MatchFilters } from '../components/matches/MatchFilters'
 import { MatchTable } from '../components/matches/MatchTable'
+import { RouteError } from '../components/system/AppError'
 import { matchFiltersSchema } from '../features/matches/match-filters.schema'
 import { accountIdSchema } from '../features/player/player-params.schema'
 import { getPlayerHeroStats, getPlayerMatches } from '../server/player.functions'
@@ -23,12 +24,12 @@ export const Route = createFileRoute('/players/$accountId_/matches')({
       page: deps.page,
       result: deps.result,
     }
-    const [page, heroes] = await Promise.all([
-      getPlayerMatches({ data: { accountId, ...filters } }),
-      getPlayerHeroStats({ data: { accountId } }),
-    ])
+    const heroesPromise = getPlayerHeroStats({ data: { accountId } }).catch(() => [])
+    const page = await getPlayerMatches({ data: { accountId, ...filters } })
+    const heroes = await heroesPromise
     return { accountId, filters, page, heroes }
   },
+  errorComponent: RouteError,
   head: ({ params }) => ({
     meta: [
       { title: `Player ${params.accountId} matches — Deadlock Ledger` },

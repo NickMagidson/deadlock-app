@@ -24,6 +24,12 @@ test('resolves a raw account ID before name search', async ({ page }) => {
   )
 })
 
+test('preserves every digit of a SteamID64 in a direct request', async ({ page }) => {
+  await page.goto('/?q=76561197960265851')
+  await expect(page).toHaveURL('/?q=76561197960265851')
+  await expect(page.getByText('Exact Account')).toBeVisible()
+})
+
 test('falls back to display-name search for numeric text outside ID range', async ({
   page,
 }) => {

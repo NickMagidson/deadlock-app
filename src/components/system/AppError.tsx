@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { type ErrorComponentProps, useRouter } from '@tanstack/react-router'
 
 export type PublicErrorCode =
   | 'invalid-input'
@@ -19,17 +20,35 @@ export interface PublicErrorState {
 interface AppErrorProps {
   error: unknown
   onRetry?: () => void | Promise<void>
+  retryLabel?: string
 }
 
-export function AppError({ error, onRetry }: AppErrorProps) {
+export function AppError({ error, onRetry, retryLabel = 'Try again' }: AppErrorProps) {
   const state = isPublicErrorState(error) ? error : toPublicErrorState(error)
   const [retrying, setRetrying] = useState(false)
   const [isHydrated, setIsHydrated] = useState(false)
+  const [remainingSeconds, setRemainingSeconds] = useState(state.retryAfterSeconds ?? 0)
   const retryRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     setIsHydrated(true)
   }, [])
+
+  useEffect(() => {
+    const delay = state.retryAfterSeconds ?? 0
+    setRemainingSeconds(delay)
+    if (delay <= 0) return
+    const timer = window.setInterval(() => {
+      setRemainingSeconds((seconds) => {
+        if (seconds <= 1) {
+          window.clearInterval(timer)
+          return 0
+        }
+        return seconds - 1
+      })
+    }, 1_000)
+    return () => window.clearInterval(timer)
+  }, [state.retryAfterSeconds])
 
   async function retry() {
     if (!onRetry || retrying) return
@@ -46,21 +65,41 @@ export function AppError({ error, onRetry }: AppErrorProps) {
     <section className="app-error" role="alert">
       <h2>Request interrupted</h2>
       <p>{state.message}</p>
-      {state.retryAfterSeconds !== undefined ? (
-        <p>Try again in {state.retryAfterSeconds} seconds.</p>
+      {remainingSeconds > 0 ? (
+        <p>Try again in {remainingSeconds} seconds.</p>
       ) : null}
-      {state.retryable && onRetry && isHydrated ? (
+      {state.retryable && onRetry && isHydrated && remainingSeconds === 0 ? (
         <button
           disabled={retrying}
           onClick={() => void retry()}
           ref={retryRef}
           type="button"
         >
-          {retrying ? 'Trying again…' : 'Try again'}
+          {retrying ? 'Trying again…' : retryLabel}
         </button>
       ) : null}
     </section>
   )
+}
+
+export function RouteError({ error, reset }: ErrorComponentProps) {
+  const router = useRouter()
+  return (
+    <main className="system-message" id="main-content">
+      <h1>The archive is temporarily unavailable</h1>
+      <AppError
+        error={error}
+        onRetry={async () => {
+          reset()
+          await router.invalidate()
+        }}
+      />
+    </main>
+  )
+}
+
+export function hasErrorCode(error: unknown, code: PublicErrorCode) {
+  return typeof error === 'object' && error !== null && 'code' in error && error.code === code
 }
 
 export function toPublicErrorState(error: unknown): PublicErrorState {

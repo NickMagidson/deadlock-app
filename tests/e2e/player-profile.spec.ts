@@ -15,7 +15,12 @@ test('serves a meaningful profile document and completes streamed sections', asy
   await expect(page.getByRole('heading', { level: 1, name: 'Exact Account' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Infernus' })).toBeVisible()
   await expect(page.getByText('3 straight wins in the latest available matches.')).toBeVisible()
-  await expect(page.getByText('19 / 3 / 14')).toBeVisible()
+  await expect(page.getByText('19 / 3 / 14').first()).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Standout matches' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Explore all matches →' })).toHaveAttribute(
+    'href',
+    '/players/123/matches?page=1&result=all',
+  )
 })
 
 test('isolates a streamed section failure and retries it', async ({ page }) => {

@@ -35,6 +35,7 @@ export function MatchTable({ accountId, filters, page }: MatchTableProps) {
                   <Link
                     aria-label={`Open match ${match.matchId}`}
                     params={{ accountId: String(accountId), matchId: match.matchId }}
+                    preload={false}
                     search={{}}
                     to="/players/$accountId/matches/$matchId"
                   >
@@ -56,23 +57,25 @@ export function MatchTable({ accountId, filters, page }: MatchTableProps) {
       )}
       <nav className="pagination" aria-label="Match pages">
         {page.hasPrevious ? (
-          <a aria-label="Previous page" href={pageHref(accountId, filters, filters.page - 1)}>
+          <Link aria-label="Previous page" params={{ accountId: String(accountId) }} search={pageSearch(filters, filters.page - 1)} to="/players/$accountId/matches">
             ← Previous
-          </a>
+          </Link>
         ) : <span />}
         <span>Page {page.page}</span>
         {page.hasNext ? (
-          <a aria-label="Next page" href={pageHref(accountId, filters, filters.page + 1)}>
+          <Link aria-label="Next page" params={{ accountId: String(accountId) }} search={pageSearch(filters, filters.page + 1)} to="/players/$accountId/matches">
             Next →
-          </a>
+          </Link>
         ) : <span />}
       </nav>
     </section>
   )
 }
 
-function pageHref(accountId: number, filters: MatchFilters, page: number) {
-  const params = new URLSearchParams({ page: String(page), result: filters.result })
-  if ('hero' in filters && filters.hero !== undefined) params.set('hero', String(filters.hero))
-  return `/players/${accountId}/matches?${params}`
+function pageSearch(filters: MatchFilters, page: number): MatchFilters {
+  return {
+    ...('hero' in filters && filters.hero !== undefined ? { hero: filters.hero } : {}),
+    page,
+    result: filters.result,
+  }
 }

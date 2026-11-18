@@ -1,4 +1,5 @@
 import { createServerFn } from '@tanstack/react-start'
+import { getRequest } from '@tanstack/react-start/server'
 import { z } from 'zod'
 
 import { createPlayerService, createProductionDeadlockPort } from './player.service.server'
@@ -43,5 +44,13 @@ export const getMatchDetail = createServerFn({ method: 'GET' })
   .handler(({ data }) => service().getMatchDetail(data))
 
 function service() {
-  return createPlayerService(createProductionDeadlockPort(), createRequestCache())
+  const request = getRequest()
+  let cache = requestCaches.get(request)
+  if (!cache) {
+    cache = createRequestCache()
+    requestCaches.set(request, cache)
+  }
+  return createPlayerService(createProductionDeadlockPort(), cache)
 }
+
+const requestCaches = new WeakMap<Request, ReturnType<typeof createRequestCache>>()

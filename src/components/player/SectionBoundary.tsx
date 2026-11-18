@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
+import { AppError } from '../system/AppError'
 
 interface SectionBoundaryProps {
   children: ReactNode
@@ -30,15 +31,12 @@ export class SectionBoundary extends Component<SectionBoundaryProps, SectionBoun
   render() {
     if (this.state.error) {
       return (
-        <section className="section-error" role="alert">
-          <p>{this.props.name} could not be loaded.</p>
-          <button
-            disabled={this.state.retrying}
-            onClick={() => void this.retry()}
-            type="button"
-          >
-            {this.state.retrying ? 'Retrying…' : `Retry ${this.props.name.toLowerCase()}`}
-          </button>
+        <section className="section-error">
+          <AppError
+            error={sectionError(this.state.error, this.props.name)}
+            onRetry={() => this.retry()}
+            retryLabel={`Retry ${this.props.name.toLowerCase()}`}
+          />
         </section>
       )
     }
@@ -49,6 +47,19 @@ export class SectionBoundary extends Component<SectionBoundaryProps, SectionBoun
     this.setState({ retrying: true })
     await this.props.onRetry()
     this.setState({ error: null, retrying: false })
+  }
+}
+
+function sectionError(error: Error, name: string) {
+  const retryAfterSeconds =
+    'retryAfterSeconds' in error && Number.isFinite(Number(error.retryAfterSeconds))
+      ? Number(error.retryAfterSeconds)
+      : undefined
+  return {
+    code: 'unknown' as const,
+    message: `${name} could not be loaded.`,
+    retryable: true,
+    ...(retryAfterSeconds === undefined ? {} : { retryAfterSeconds }),
   }
 }
 

@@ -26,7 +26,7 @@ createServer((request, response) => {
     if (query === 'RateLimit' || query === 'Busy' || query === 'Recover') {
       if (query !== 'Recover' || recoverSearchFailures++ === 0) {
         response.statusCode = query === 'RateLimit' ? 429 : 503
-        response.setHeader('Retry-After', query === 'Busy' ? '2' : '7')
+        response.setHeader('Retry-After', query === 'Busy' ? '2' : query === 'Recover' ? '1' : '7')
         return response.end('{"error":"try later"}')
       }
       return response.end(JSON.stringify([profile(777, 'Recovered Player')]))
@@ -82,6 +82,11 @@ createServer((request, response) => {
   }
   const historyMatch = /^\/v1\/players\/(\d+)\/match-history$/.exec(url.pathname)
   if (historyMatch) {
+    if (historyMatch[1] === '998') {
+      response.statusCode = 503
+      response.setHeader('Retry-After', '1')
+      return response.end('{"error":"history unavailable"}')
+    }
     return response.end(
       JSON.stringify(
         Array.from({ length: 5 }, (_, index) => match(Number(historyMatch[1]), 5 - index)),
@@ -91,6 +96,10 @@ createServer((request, response) => {
   const metadataMatch = /^\/v1\/matches\/(\d+)\/metadata$/.exec(url.pathname)
   if (metadataMatch) {
     const matchId = metadataMatch[1]
+    if (matchId === '8888') {
+      response.statusCode = 404
+      return response.end('{"error":"metadata missing"}')
+    }
     const accountId = matchId === '9999' ? 456 : 123
     const payload = {
       match_info: {

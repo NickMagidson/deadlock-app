@@ -27,7 +27,7 @@ test.describe('resilient search states', () => {
 
   test('shows retry delay and recovers through a keyboard-focusable retry', async ({ page }) => {
     await page.goto('/?q=Recover')
-    await expect(page.getByText('Try again in 7 seconds.')).toBeVisible()
+    await expect(page.getByText('Try again in 1 seconds.')).toBeVisible()
     const retry = page.getByRole('button', { name: 'Try again' })
     await expect(retry).toBeEnabled()
     await retry.focus()
@@ -47,6 +47,12 @@ test('provides document landmarks, skip navigation, and reduced motion', async (
     (element) => getComputedStyle(element).transitionDuration,
   )
   expect(Number.parseFloat(duration)).toBe(0.00001)
+})
+
+test('renders a recoverable match-list provider failure', async ({ page }) => {
+  await page.goto('/players/998/matches')
+  await expect(page.getByRole('alert')).toContainText('Deadlock is busy')
+  await expect(page.getByRole('button', { name: 'Try again' })).toBeVisible({ timeout: 3_000 })
 })
 
 for (const [name, path] of [

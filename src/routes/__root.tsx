@@ -4,11 +4,10 @@ import {
   Outlet,
   Scripts,
   createRootRoute,
-  type ErrorComponentProps,
 } from '@tanstack/react-router'
 
 import '../styles.css'
-import { AppError } from '../components/system/AppError'
+import { RouteError } from '../components/system/AppError'
 import { EmptyState } from '../components/system/EmptyState'
 
 export const Route = createRootRoute({
@@ -24,7 +23,7 @@ export const Route = createRootRoute({
     ],
   }),
   component: RootComponent,
-  errorComponent: RootError,
+  errorComponent: RouteError,
   notFoundComponent: NotFound,
 })
 
@@ -42,15 +41,6 @@ function RootComponent() {
         <Scripts />
       </body>
     </html>
-  )
-}
-
-function RootError({ error, reset }: ErrorComponentProps) {
-  return (
-    <main className="system-message" id="main-content">
-      <h1>The archive is temporarily unavailable</h1>
-      <AppError error={error} onRetry={reset} />
-    </main>
   )
 }
 

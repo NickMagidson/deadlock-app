@@ -1,6 +1,6 @@
 import type { PlayerAchievement } from '../../domain/achievements'
 
-export function AchievementGrid({ achievements }: { achievements: PlayerAchievement[] }) {
+export function AchievementGrid({ accountId, achievements }: { accountId?: number; achievements: PlayerAchievement[] }) {
   return (
     <section className="profile-section" aria-labelledby="achievements-heading">
       <div className="section-heading">
@@ -15,6 +15,9 @@ export function AchievementGrid({ achievements }: { achievements: PlayerAchievem
               <h3>{achievement.title}</h3>
               <p>{achievement.description}</p>
               <small>{achievement.evidence}</small>
+              {accountId && achievement.matchId ? (
+                <a href={`/players/${accountId}/matches/${achievement.matchId}`}>Open match →</a>
+              ) : null}
             </article>
           ))}
         </div>

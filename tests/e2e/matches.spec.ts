@@ -33,3 +33,9 @@ test('returns not-found when the routed player did not participate', async ({ pa
   await page.goto('/players/123/matches/9999')
   await expect(page.getByRole('heading', { name: 'This record could not be found' })).toBeVisible()
 })
+
+test('preserves not-found for absent upstream match metadata', async ({ page }) => {
+  const response = await page.goto('/players/123/matches/8888')
+  expect(response?.status()).toBe(404)
+  await expect(page.getByRole('heading', { name: 'This record could not be found' })).toBeVisible()
+})

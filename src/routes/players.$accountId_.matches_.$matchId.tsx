@@ -1,6 +1,7 @@
 import { createFileRoute, notFound } from '@tanstack/react-router'
 
 import { MatchScoreboard } from '../components/matches/MatchScoreboard'
+import { hasErrorCode, RouteError } from '../components/system/AppError'
 import { accountIdSchema, matchIdSchema } from '../features/player/player-params.schema'
 import { getMatchDetail } from '../server/player.functions'
 
@@ -15,7 +16,7 @@ export const Route = createFileRoute('/players/$accountId_/matches_/$matchId')({
         data: { accountId: accountId.data, matchId: matchId.data },
       })
     } catch (error) {
-      if (
+      if (hasErrorCode(error, 'not-found') ||
         error instanceof Error &&
         error.message === 'This player did not participate in the requested match.'
       ) {
@@ -25,6 +26,7 @@ export const Route = createFileRoute('/players/$accountId_/matches_/$matchId')({
     }
   },
   pendingComponent: PendingMatch,
+  errorComponent: RouteError,
   component: MatchDetail,
 })
 

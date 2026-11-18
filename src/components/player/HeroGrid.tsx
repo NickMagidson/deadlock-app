@@ -14,7 +14,10 @@ export function HeroGrid({ heroes }: { heroes: EnrichedHero[] }) {
       </div>
       {heroes.length ? (
         <div className="hero-grid">
-          {heroes.slice(0, 6).map((hero) => (
+          {[...heroes]
+            .sort((a, b) => b.matchesPlayed - a.matchesPlayed || b.wins - a.wins)
+            .slice(0, 6)
+            .map((hero) => (
             <article key={hero.heroId}>
               {hero.imageUrl ? <img alt="" src={hero.imageUrl} /> : <span aria-hidden="true">{hero.name.slice(0, 1)}</span>}
               <div>
@@ -23,7 +26,7 @@ export function HeroGrid({ heroes }: { heroes: EnrichedHero[] }) {
                 <small>{formatKda(hero)} average KDA</small>
               </div>
             </article>
-          ))}
+            ))}
         </div>
       ) : (
         <p className="empty-copy">No hero statistics are available for this player.</p>

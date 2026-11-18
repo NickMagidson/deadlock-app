@@ -39,8 +39,6 @@ export function generateAchievements({
   const scoredMatches = [...matches]
     .filter((match) => match.outcome === 'win' || match.outcome === 'loss')
     .sort((a, b) => b.startTime - a.startTime)
-  if (scoredMatches.length < MIN_STREAK) return []
-
   const achievements: Array<PlayerAchievement | null> = [
     winStreakAchievement(scoredMatches),
     specialistAchievement(heroes),
@@ -71,6 +69,7 @@ export function scoreStandoutMatches(matches: readonly MatchSummary[]): ScoredMa
 }
 
 function winStreakAchievement(matches: readonly MatchSummary[]) {
+  if (matches.length < MIN_STREAK) return null
   const streak = matches.findIndex((match) => match.outcome !== 'win')
   const wins = streak === -1 ? matches.length : streak
   if (wins < MIN_STREAK) return null

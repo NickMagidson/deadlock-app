@@ -32,6 +32,14 @@ describe('generateAchievements', () => {
     expect(achievements[3]).toMatchObject({ matchId: '4' })
   })
 
+  it('awards a supported specialist independently of recent match count', () => {
+    const achievements = generateAchievements({
+      heroes: [hero({ heroId: 7, matchesPlayed: 12 }), hero({ heroId: 3, matchesPlayed: 4 })],
+      matches: [match()],
+    })
+    expect(achievements.map((achievement) => achievement.kind)).toContain('hero-specialist')
+  })
+
   it('suppresses claims when samples do not meet their minimums', () => {
     expect(
       generateAchievements({

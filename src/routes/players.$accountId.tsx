@@ -4,9 +4,10 @@ import { Await, createFileRoute, notFound, useRouter } from '@tanstack/react-rou
 import { AchievementGrid } from '../components/player/AchievementGrid'
 import { HeroGrid } from '../components/player/HeroGrid'
 import { PlayerHeader } from '../components/player/PlayerHeader'
-import { RecentMatches } from '../components/player/RecentMatches'
+import { RecentMatches, StandoutMatches } from '../components/player/RecentMatches'
 import { SectionBoundary, SectionSkeleton } from '../components/player/SectionBoundary'
 import { StatsOverview } from '../components/player/StatsOverview'
+import { hasErrorCode, RouteError } from '../components/system/AppError'
 import { generateAchievements, scoreStandoutMatches } from '../domain/achievements'
 import { buildPlayerSummary, buildRecentForm } from '../domain/player-analytics'
 import { accountIdSchema } from '../features/player/player-params.schema'
@@ -23,11 +24,13 @@ export const Route = createFileRoute('/players/$accountId')({
     const matches = getPlayerMatches({
       data: { accountId, page: 1, result: 'all' },
     })
+    void heroes.catch(() => undefined)
+    void matches.catch(() => undefined)
     let summary
     try {
       summary = await summaryPromise
     } catch (error) {
-      if (error instanceof Error && error.message === 'This player could not be found.') {
+      if (hasErrorCode(error, 'not-found') || (error instanceof Error && error.message === 'This player could not be found.')) {
         throw notFound()
       }
       throw error
@@ -40,6 +43,7 @@ export const Route = createFileRoute('/players/$accountId')({
     }))
     return { summary, heroes, matches, analytics }
   },
+  errorComponent: RouteError,
   head: ({ loaderData, params }) => ({
     meta: [
       { title: loaderData ? `${loaderData.summary.identity.displayName} — Deadlock Ledger` : 'Deadlock player' },
@@ -73,7 +77,8 @@ function PlayerProfileRoute() {
             {(data) => (
               <>
                 <StatsOverview recentForm={data.recentForm} stats={data.stats} />
-                <AchievementGrid achievements={data.achievements} />
+                <AchievementGrid accountId={summary.identity.accountId} achievements={data.achievements} />
+                <StandoutMatches accountId={summary.identity.accountId} standouts={data.standouts} />
               </>
             )}
           </Await>
@@ -86,7 +91,7 @@ function PlayerProfileRoute() {
       </SectionBoundary>
       <SectionBoundary name="Recent matches" onRetry={retry} resetKey={matches}>
         <Suspense fallback={<SectionSkeleton label="Loading recent matches" />}>
-          <Await promise={matches}>{(data) => <RecentMatches page={data} />}</Await>
+          <Await promise={matches}>{(data) => <RecentMatches accountId={summary.identity.accountId} page={data} />}</Await>
         </Suspense>
       </SectionBoundary>
     </main>

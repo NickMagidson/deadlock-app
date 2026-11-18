@@ -116,7 +116,9 @@ export function createPlayerService(port: DeadlockPort, cache: RequestCache) {
       const [identity, rank, rankAssets] = await Promise.all([
         cached('profile', accountId, () => port.getSteamProfile(accountId)),
         cached('rank', accountId, () => port.getRank(accountId)),
-        cached('rank-assets', 'english', () => port.getRankAssets()),
+        cached('rank-assets', 'english', () => port.getRankAssets()).catch(
+          (): RankAssetMap => ({}),
+        ),
       ])
       if (!identity) {
         throw new PlayerServiceError('not-found', 'This player could not be found.')

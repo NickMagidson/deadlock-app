@@ -17,7 +17,7 @@ describe('AppError', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('Deadlock is busy')
     expect(screen.getByText('Try again in 7 seconds.')).toBeVisible()
     expect(screen.queryByText('raw provider body')).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Try again' })).toBeVisible()
+    expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument()
   })
 
   it('does not offer retry for a missing record', () => {
