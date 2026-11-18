@@ -78,6 +78,8 @@ describe('Deadlock transforms', () => {
         accountId: 123,
         matchId: '9007199254740992',
         heroId: 7,
+        gameMode: 1,
+        matchMode: 1,
         startTime: 1_799_999_999,
         durationSeconds: 2_340,
         outcome: 'win',

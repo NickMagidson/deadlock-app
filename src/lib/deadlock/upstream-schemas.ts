@@ -40,6 +40,8 @@ export const matchHistoryEntrySchema = z
     account_id: nonNegativeInteger,
     match_id: z.number().nonnegative().refine(Number.isInteger),
     hero_id: nonNegativeInteger,
+    game_mode: z.number().int(),
+    match_mode: z.number().int(),
     start_time: nonNegativeInteger,
     player_kills: nonNegativeInteger,
     player_deaths: nonNegativeInteger,

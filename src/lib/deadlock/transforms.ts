@@ -54,6 +54,8 @@ export function toMatchSummaries(entries: readonly unknown[]): MatchSummary[] {
         accountId: match.account_id,
         matchId: String(match.match_id),
         heroId: match.hero_id,
+        gameMode: match.game_mode,
+        matchMode: match.match_mode,
         startTime: match.start_time,
         durationSeconds: match.match_duration_s,
         outcome: outcomeFromCode(match.player_match_outcome),

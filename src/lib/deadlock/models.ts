@@ -26,6 +26,8 @@ export interface MatchSummary {
   accountId: number
   matchId: string
   heroId: number
+  gameMode: number
+  matchMode: number
   startTime: number
   durationSeconds: number
   outcome: MatchOutcome
