@@ -1,0 +1,81 @@
+@import 'tailwindcss';
+
+:root {
+  color: #eee8d7;
+  background: #11110f;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  background: #11110f;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+}
+
+a {
+  color: inherit;
+}
+
+.skip-link {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 50;
+  translate: 0 -200%;
+  border: 1px solid #cfb66b;
+  background: #11110f;
+  padding: 0.65rem 0.9rem;
+}
+
+.skip-link:focus {
+  translate: 0;
+}
+
+.site-shell {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 2rem;
+  background:
+    radial-gradient(circle at 50% 15%, rgb(93 75 44 / 0.2), transparent 34rem),
+    linear-gradient(135deg, #151511, #0d0e0d);
+}
+
+.site-shell h1 {
+  max-width: 14ch;
+  margin: 0;
+  color: #f2ead5;
+  font-size: clamp(2.75rem, 9vw, 6.5rem);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 0.92;
+  text-wrap: balance;
+}
+
+.system-message {
+  width: min(100%, 38rem);
+  margin: 15vh auto;
+  padding: 2rem;
+  border: 1px solid rgb(207 182 107 / 0.5);
+  background: #171713;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
