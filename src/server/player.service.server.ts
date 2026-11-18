@@ -49,6 +49,15 @@ export interface MatchDetailSource {
   participants: MatchParticipant[]
 }
 
+export interface PlayerSummaryResult {
+  identity: PlayerIdentitySource
+  rank: RankSource & {
+    name: string | null
+    color: string | null
+    imageUrl: string | null
+  }
+}
+
 export interface DeadlockPort {
   searchSteam(query: string, limit: number): Promise<PlayerSearchResult[]>
   getSteamProfile(accountId: number): Promise<PlayerIdentitySource | null>
@@ -99,7 +108,7 @@ export function createPlayerService(port: DeadlockPort, cache: RequestCache) {
       return (await port.searchSteam(classified.query, 10)).slice(0, 10)
     },
 
-    async getPlayerSummary({ accountId }: { accountId: number }) {
+    async getPlayerSummary({ accountId }: { accountId: number }): Promise<PlayerSummaryResult> {
       const [identity, rank, rankAssets] = await Promise.all([
         cached('profile', accountId, () => port.getSteamProfile(accountId)),
         cached('rank', accountId, () => port.getRank(accountId)),
