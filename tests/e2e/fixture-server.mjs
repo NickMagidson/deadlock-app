@@ -8,6 +8,7 @@ const profiles = {
 }
 let apiCalls = 0
 let retryHeroFailures = 0
+let recoverSearchFailures = 0
 
 createServer((request, response) => {
   const url = new URL(request.url ?? '/', 'http://127.0.0.1:3100')
@@ -18,6 +19,24 @@ createServer((request, response) => {
   apiCalls += 1
   if (url.pathname === '/v1/players/steam-search') {
     const query = url.searchParams.get('search_query') ?? ''
+    if (query === 'Missing') {
+      response.statusCode = 404
+      return response.end('{"error":"not found"}')
+    }
+    if (query === 'RateLimit' || query === 'Busy' || query === 'Recover') {
+      if (query !== 'Recover' || recoverSearchFailures++ === 0) {
+        response.statusCode = query === 'RateLimit' ? 429 : 503
+        response.setHeader('Retry-After', query === 'Busy' ? '2' : '7')
+        return response.end('{"error":"try later"}')
+      }
+      return response.end(JSON.stringify([profile(777, 'Recovered Player')]))
+    }
+    if (query === 'Timeout') {
+      response.statusCode = 504
+      return response.end('{"error":"gateway timeout"}')
+    }
+    if (query === 'Malformed') return response.end('{not-json')
+    if (query === 'Offline') return request.socket.destroy()
     return response.end(JSON.stringify(profiles[query] ? [profiles[query]] : []))
   }
   if (url.pathname === '/v1/players/steam') {

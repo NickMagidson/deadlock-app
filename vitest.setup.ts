@@ -2,9 +2,13 @@ import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
 import { afterEach } from 'vitest'
 
-afterEach(cleanup)
-
-Object.defineProperty(window, 'scrollTo', {
-  configurable: true,
-  value: () => undefined,
+afterEach(() => {
+  if (typeof document !== 'undefined') cleanup()
 })
+
+if (typeof window !== 'undefined') {
+  Object.defineProperty(window, 'scrollTo', {
+    configurable: true,
+    value: () => undefined,
+  })
+}

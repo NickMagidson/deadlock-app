@@ -5,5 +5,10 @@ import { nitro } from 'nitro/vite'
 import { defineConfig } from 'vite'
 
 export default defineConfig({
-  plugins: [tanstackStart(), nitro(), tailwindcss(), react()],
+  plugins: [
+    tanstackStart(),
+    nitro({ preset: 'node-server', compatibilityDate: '2026-11-18' }),
+    tailwindcss(),
+    react(),
+  ],
 })

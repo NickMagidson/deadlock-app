@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router'
 
 import type { MatchPage } from '../../domain/match-window'
 import type { MatchFilters } from '../../features/matches/match-filters.schema'
+import { EmptyState } from '../system/EmptyState'
 
 interface MatchTableProps {
   accountId: number
@@ -48,7 +49,10 @@ export function MatchTable({ accountId, filters, page }: MatchTableProps) {
           </tbody>
         </table>
       ) : (
-        <p className="empty-copy">No matches in the latest available sample match these filters.</p>
+        <EmptyState
+          description="Try a broader hero or result filter."
+          title="No matches in the latest available sample match these filters."
+        />
       )}
       <nav className="pagination" aria-label="Match pages">
         {page.hasPrevious ? (

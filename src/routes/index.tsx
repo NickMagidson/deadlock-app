@@ -1,7 +1,8 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, useNavigate, useRouter } from '@tanstack/react-router'
 
 import { PlayerSearchForm } from '../components/search/PlayerSearchForm'
 import { SearchResults } from '../components/search/SearchResults'
+import { toPublicErrorState } from '../components/system/AppError'
 import { searchSchema } from '../features/search/search.schema'
 import { searchPlayers } from '../server/player.functions'
 
@@ -38,6 +39,7 @@ function HomePage() {
   const { q } = Route.useSearch()
   const { results, error } = Route.useLoaderData()
   const navigate = useNavigate({ from: '/' })
+  const router = useRouter()
 
   return (
     <main className="landing" id="main-content">
@@ -58,7 +60,12 @@ function HomePage() {
           onSubmit={(query) => navigate({ search: { q: query } })}
         />
       </section>
-      <SearchResults error={error} query={q} results={results} />
+      <SearchResults
+        error={error}
+        onRetry={() => router.invalidate()}
+        query={q}
+        results={results}
+      />
       <footer className="landing__footer">
         <span>Community data, not affiliated with Valve</span>
         <span>Records may be incomplete or delayed</span>
@@ -77,14 +84,5 @@ function LinkMark() {
 }
 
 function publicSearchError(error: unknown) {
-  const message = error instanceof Error ? error.message : ''
-  const safeMessages = new Set([
-    'Deadlock is busy. Please try again later.',
-    'Deadlock is temporarily unavailable.',
-    'Deadlock took too long to respond.',
-    'Deadlock could not be reached.',
-  ])
-  return safeMessages.has(message)
-    ? message
-    : 'The player archive could not be searched right now.'
+  return toPublicErrorState(error)
 }

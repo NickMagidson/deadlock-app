@@ -8,6 +8,8 @@ import {
 } from '@tanstack/react-router'
 
 import '../styles.css'
+import { AppError } from '../components/system/AppError'
+import { EmptyState } from '../components/system/EmptyState'
 
 export const Route = createRootRoute({
   head: () => ({
@@ -43,14 +45,11 @@ function RootComponent() {
   )
 }
 
-function RootError({ reset }: ErrorComponentProps) {
+function RootError({ error, reset }: ErrorComponentProps) {
   return (
     <main className="system-message" id="main-content">
       <h1>The archive is temporarily unavailable</h1>
-      <p>Something interrupted this request. Try loading it again.</p>
-      <button type="button" onClick={reset}>
-        Try again
-      </button>
+      <AppError error={error} onRetry={reset} />
     </main>
   )
 }
@@ -59,7 +58,10 @@ function NotFound() {
   return (
     <main className="system-message" id="main-content">
       <h1>This record could not be found</h1>
-      <p>The player or match may no longer be available.</p>
+      <EmptyState
+        description="The player or match may no longer be available."
+        title="No record here"
+      />
       <Link search={{ q: '' }} to="/">
         Return to search
       </Link>

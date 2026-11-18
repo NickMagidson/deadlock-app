@@ -1,18 +1,21 @@
 import { Link } from '@tanstack/react-router'
 
 import type { PlayerSearchResult } from '../../lib/deadlock/models'
+import { AppError } from '../system/AppError'
+import { EmptyState } from '../system/EmptyState'
 
 interface SearchResultsProps {
   query: string
   results: PlayerSearchResult[]
-  error?: string | null
+  error?: unknown
+  onRetry?: () => void | Promise<void>
 }
 
-export function SearchResults({ query, results, error }: SearchResultsProps) {
+export function SearchResults({ query, results, error, onRetry }: SearchResultsProps) {
   if (error) {
     return (
       <section className="search-results search-results--message" aria-label="Search results">
-        <p role="alert">{error}</p>
+        <AppError error={error} onRetry={onRetry} />
       </section>
     )
   }
@@ -28,7 +31,10 @@ export function SearchResults({ query, results, error }: SearchResultsProps) {
   if (results.length === 0) {
     return (
       <section className="search-results search-results--message" aria-label="Search results">
-        <p role="status">No players found for “{query}”.</p>
+        <EmptyState
+          description="Check the spelling or try a Steam account ID."
+          title={`No players found for “${query}”.`}
+        />
       </section>
     )
   }
@@ -42,10 +48,10 @@ export function SearchResults({ query, results, error }: SearchResultsProps) {
         {results.map((player) => (
           <li key={player.accountId}>
             <Link
-              aria-label={`View ${player.displayName}`}
               params={{ accountId: String(player.accountId) }}
               to="/players/$accountId"
             >
+              <span className="sr-only">View</span>{' '}
               {player.avatarUrl ? (
                 <img alt="" height={64} src={player.avatarUrl} width={64} />
               ) : (
@@ -55,6 +61,7 @@ export function SearchResults({ query, results, error }: SearchResultsProps) {
               )}
               <span>
                 <strong>{player.displayName}</strong>
+                {' '}
                 <small>Account {player.accountId}</small>
               </span>
               <span aria-hidden="true" className="search-result__arrow">

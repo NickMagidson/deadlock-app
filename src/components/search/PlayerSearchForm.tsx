@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import type { FormEvent } from 'react'
 
 interface PlayerSearchFormProps {
   initialQuery: string
@@ -6,25 +6,23 @@ interface PlayerSearchFormProps {
 }
 
 export function PlayerSearchForm({ initialQuery, onSubmit }: PlayerSearchFormProps) {
-  const [query, setQuery] = useState(initialQuery)
-
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    onSubmit(query.trim())
+    const data = new FormData(event.currentTarget)
+    onSubmit(String(data.get('q') ?? '').trim())
   }
 
   return (
-    <form className="player-search" role="search" onSubmit={submit}>
+    <form action="/" className="player-search" method="get" role="search" onSubmit={submit}>
       <label htmlFor="player-query">Steam name or ID</label>
       <div className="player-search__control">
         <input
           id="player-query"
           maxLength={100}
           name="q"
-          onChange={(event) => setQuery(event.target.value)}
           placeholder="ExamplePlayer or 7656119…"
           type="search"
-          value={query}
+          defaultValue={initialQuery}
         />
         <button type="submit">Open the archive</button>
       </div>

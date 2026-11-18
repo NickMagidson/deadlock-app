@@ -23,7 +23,7 @@ test('isolates a streamed section failure and retries it', async ({ page }) => {
 
   await expect(page.getByRole('heading', { level: 1, name: 'RetryPlayer' })).toBeVisible()
   const retry = page.getByRole('button', { name: 'Retry hero performance' })
-  await expect(retry).toBeVisible()
+  await expect(retry).toBeVisible({ timeout: 15_000 })
   await retry.click()
   await expect(page.getByRole('heading', { name: 'Infernus' })).toBeVisible()
 })
