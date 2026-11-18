@@ -44,7 +44,13 @@ Playwright uses a deterministic local Deadlock API fixture, so browser tests do 
 
 ## Production
 
-The Vite configuration explicitly targets Nitro's Node server preset. Build and start it with:
+### Vercel
+
+Vercel detects the TanStack Start framework from `vercel.json`, and Nitro detects the Vercel build environment to generate the appropriate server and static output. In the Vercel project settings, use `npm run build` as the Build Command and leave **Output Directory** unset.
+
+### Generic Node hosting
+
+For a standalone Node server, build and start the application with:
 
 ```bash
 npm run build

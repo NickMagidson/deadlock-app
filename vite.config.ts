@@ -7,7 +7,7 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   plugins: [
     tanstackStart(),
-    nitro({ preset: 'node-server', compatibilityDate: '2026-11-18' }),
+    nitro({ compatibilityDate: '2026-11-18' }),
     tailwindcss(),
     react(),
   ],
