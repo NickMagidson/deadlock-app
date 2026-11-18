@@ -25,6 +25,8 @@ export const Route = createFileRoute('/players/$accountId_/matches_/$matchId')({
       throw error
     }
   },
+  pendingMs: 0,
+  pendingMinMs: 500,
   pendingComponent: PendingMatch,
   errorComponent: RouteError,
   component: MatchDetail,
