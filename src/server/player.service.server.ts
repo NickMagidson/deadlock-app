@@ -49,6 +49,10 @@ export interface MatchDetailSource {
   participants: MatchParticipant[]
 }
 
+export interface MatchDetailResult extends MatchDetailSource {
+  player: MatchParticipant
+}
+
 export interface PlayerSummaryResult {
   identity: PlayerIdentitySource
   rank: RankSource & {
@@ -150,7 +154,13 @@ export function createPlayerService(port: DeadlockPort, cache: RequestCache) {
       return getMatchPage(history, input)
     },
 
-    async getMatchDetail({ accountId, matchId }: { accountId: number; matchId: string }) {
+    async getMatchDetail({
+      accountId,
+      matchId,
+    }: {
+      accountId: number
+      matchId: string
+    }): Promise<MatchDetailResult> {
       const detail = await cached('match-metadata', matchId, () =>
         port.getMatchMetadata(matchId),
       )

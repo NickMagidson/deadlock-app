@@ -69,6 +69,20 @@ createServer((request, response) => {
       ),
     )
   }
+  const metadataMatch = /^\/v1\/matches\/(\d+)\/metadata$/.exec(url.pathname)
+  if (metadataMatch) {
+    const matchId = metadataMatch[1]
+    const accountId = matchId === '9999' ? 456 : 123
+    const payload = {
+      match_info: {
+        players: [
+          { account_id: accountId, hero_id: 7, kills: 19, deaths: 3, assists: 14 },
+          { account_id: 456, hero_id: 3, kills: 4, deaths: 6, assists: 8 },
+        ],
+      },
+    }
+    return setTimeout(() => response.end(JSON.stringify(payload)), 500)
+  }
 
   response.statusCode = 404
   response.end('{"error":"fixture not found"}')
