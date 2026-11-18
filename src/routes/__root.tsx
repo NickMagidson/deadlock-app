@@ -60,7 +60,9 @@ function NotFound() {
     <main className="system-message" id="main-content">
       <h1>This record could not be found</h1>
       <p>The player or match may no longer be available.</p>
-      <Link to="/">Return to search</Link>
+      <Link search={{ q: '' }} to="/">
+        Return to search
+      </Link>
     </main>
   )
 }
