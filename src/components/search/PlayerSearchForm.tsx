@@ -14,7 +14,7 @@ export function PlayerSearchForm({ initialQuery, onSubmit }: PlayerSearchFormPro
 
   return (
     <form action="/" className="player-search" method="get" role="search" onSubmit={submit}>
-      <label htmlFor="player-query">Steam name or ID</label>
+      <label className="sr-only" htmlFor="player-query">Steam name or ID</label>
       <div className="player-search__control">
         <input
           id="player-query"
@@ -24,7 +24,12 @@ export function PlayerSearchForm({ initialQuery, onSubmit }: PlayerSearchFormPro
           type="search"
           defaultValue={initialQuery}
         />
-        <button type="submit">Open the archive</button>
+        <button aria-label="Search" type="submit">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="6" />
+            <path d="m16 16 4 4" />
+          </svg>
+        </button>
       </div>
       <p>Steam display name, SteamID3, or SteamID64</p>
     </form>

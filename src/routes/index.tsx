@@ -42,18 +42,12 @@ function HomePage() {
   const router = useRouter()
 
   return (
-    <main className="landing" id="main-content">
+    <main className={q ? 'landing landing--searched' : 'landing'} id="main-content">
       <header className="landing__masthead">
         <LinkMark />
-        <span>Player archives · available records</span>
       </header>
       <section className="landing__hero">
-        <p className="eyebrow">Search the city</p>
         <h1>Find your Deadlock story</h1>
-        <p className="landing__lede">
-          Turn the matches in your available record into a profile of signature heroes,
-          standout victories, and the moments worth remembering.
-        </p>
         <PlayerSearchForm
           key={q}
           initialQuery={q}

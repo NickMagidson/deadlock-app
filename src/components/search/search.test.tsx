@@ -25,6 +25,24 @@ describe('PlayerSearchForm', () => {
 
     expect(submitted).toBe('Ivy')
   })
+
+  it('exposes a concise search action and trims the submitted query', async () => {
+    const user = userEvent.setup()
+    let submitted = ''
+    render(
+      <PlayerSearchForm
+        initialQuery=""
+        onSubmit={(query) => {
+          submitted = query
+        }}
+      />,
+    )
+
+    await user.type(screen.getByRole('searchbox', { name: 'Steam name or ID' }), ' Ivy ')
+    await user.click(screen.getByRole('button', { name: 'Search' }))
+
+    expect(submitted).toBe('Ivy')
+  })
 })
 
 describe('SearchResults', () => {

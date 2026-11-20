@@ -40,3 +40,49 @@ test('falls back to display-name search for numeric text outside ID range', asyn
     '/players/456',
   )
 })
+
+test('centers the empty search experience at desktop width', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await page.goto('/')
+
+  const heading = await page
+    .getByRole('heading', { level: 1, name: 'Find your Deadlock story' })
+    .boundingBox()
+  const search = await page.locator('.player-search__control').boundingBox()
+
+  expect(heading).not.toBeNull()
+  expect(search).not.toBeNull()
+  expect(Math.abs(heading!.x + heading!.width / 2 - 640)).toBeLessThanOrEqual(2)
+  expect(Math.abs(search!.x + search!.width / 2 - 640)).toBeLessThanOrEqual(2)
+})
+
+test('compacts the hero and keeps results above the fold after searching', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await page.goto('/?q=Ivy')
+
+  const heading = page.getByRole('heading', {
+    level: 1,
+    name: 'Find your Deadlock story',
+  })
+  const firstResult = page.getByRole('link', { name: /view ivy/i })
+  const headingBox = await heading.boundingBox()
+  const resultBox = await firstResult.boundingBox()
+
+  await expect(page.getByRole('status')).toContainText('1 player found')
+  await expect(firstResult).toBeVisible()
+  expect(headingBox).not.toBeNull()
+  expect(resultBox).not.toBeNull()
+  expect(headingBox!.y + headingBox!.height).toBeLessThan(400)
+  expect(resultBox!.y + resultBox!.height).toBeLessThanOrEqual(800)
+})
+
+test('keeps the search pill usable without overflow at 320px', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 700 })
+  await page.goto('/')
+
+  await expect(page.getByRole('searchbox', { name: 'Steam name or ID' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Search' })).toBeVisible()
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(320)
+})
