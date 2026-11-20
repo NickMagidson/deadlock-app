@@ -52,7 +52,10 @@ function HomePage() {
           getSuggestions={(query) => searchPlayers({ data: { query } })}
           key={q}
           initialQuery={q}
-          onSubmit={(query) => navigate({ search: { q: query } })}
+          onSelect={(player) => navigate({
+            to: '/players/$accountId',
+            params: { accountId: String(player.accountId) },
+          })}
         />
         <SearchResults
           error={error}

@@ -3,11 +3,7 @@ import { expect, test } from '@playwright/test'
 import type { Page } from '@playwright/test'
 
 test('searches by name and preserves results on reload', async ({ page }) => {
-  await page.goto('/')
-  const input = await hydratedSearchInput(page)
-  await input.fill('Ivy')
-  await input.press('Enter')
-
+  await page.goto('/?q=Ivy')
   await expect(page).toHaveURL('/?q=Ivy')
   await expect(page.getByRole('link', { name: /view ivy/i })).toHaveAttribute(
     'href',
@@ -18,7 +14,7 @@ test('searches by name and preserves results on reload', async ({ page }) => {
   await expect(page.getByRole('status')).toContainText('1 player found')
 })
 
-test('suggests players after typing and waits for Enter to submit', async ({ page }) => {
+test('clicking a suggestion navigates directly to its player profile', async ({ page }) => {
   await page.goto('/')
   const input = await hydratedSearchInput(page)
   await input.fill('Pl')
@@ -30,15 +26,11 @@ test('suggests players after typing and waits for Enter to submit', async ({ pag
   await expect(options.locator('img')).toHaveCount(2)
   await options.nth(0).click()
 
-  await expect(input).toHaveValue('Ivy')
-  await expect(input).toBeFocused()
-  await expect(page).toHaveURL('/')
-  await page.keyboard.press('Enter')
-  await expect(page).toHaveURL('/?q=Ivy')
-  await expect(page.getByRole('link', { name: /view ivy/i })).toBeVisible()
+  await expect(page).toHaveURL('/players/123')
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Exact Account')
 })
 
-test('supports keyboard selection without immediate navigation', async ({ page }) => {
+test('keyboard selection navigates directly to its player profile', async ({ page }) => {
   await page.goto('/')
   const input = await hydratedSearchInput(page)
   await input.fill('Pl')
@@ -47,23 +39,19 @@ test('supports keyboard selection without immediate navigation', async ({ page }
   await input.press('ArrowDown')
   await input.press('ArrowDown')
   await input.press('Enter')
-  await expect(input).toHaveValue('Pocket')
-  await expect(page).toHaveURL('/')
-
-  await input.press('Enter')
-  await expect(page).toHaveURL('/?q=Pocket')
-  await expect(page.getByRole('link', { name: /view pocket/i })).toBeVisible()
+  await expect(page).toHaveURL('/players/456')
 })
 
-test('submits unmatched text normally', async ({ page }) => {
+test('keeps unmatched text on the homepage when Enter is pressed', async ({ page }) => {
   await page.goto('/')
   const input = await hydratedSearchInput(page)
   await input.fill('Nobody')
   await expect(page.getByRole('status')).toContainText('No player suggestions')
   await input.press('Enter')
 
-  await expect(page).toHaveURL('/?q=Nobody')
-  await expect(page.getByText('No players found for “Nobody”.')).toBeVisible()
+  await expect(page).toHaveURL('/')
+  await expect(input).toHaveValue('Nobody')
+  await expect(page.getByText('No players found for “Nobody”.')).toHaveCount(0)
 })
 
 test('keeps failed suggestions non-blocking', async ({ page }) => {
@@ -75,8 +63,23 @@ test('keeps failed suggestions non-blocking', async ({ page }) => {
   )
   await input.press('Enter')
 
-  await expect(page).toHaveURL('/?q=Busy')
-  await expect(page.getByRole('alert')).toContainText('Deadlock is busy')
+  await expect(page).toHaveURL('/')
+  await expect(input).toHaveValue('Busy')
+  await expect(page.getByRole('alert')).toHaveCount(0)
+})
+
+test('shows a non-interactive leading icon', async ({ page }) => {
+  await page.goto('/')
+  const input = await hydratedSearchInput(page)
+  const icon = page.locator('.player-search__icon')
+  await expect(icon).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Search' })).toHaveCount(0)
+
+  const iconBox = await icon.boundingBox()
+  const inputBox = await input.boundingBox()
+  expect(iconBox).not.toBeNull()
+  expect(inputBox).not.toBeNull()
+  expect(iconBox!.x + iconBox!.width).toBeLessThanOrEqual(inputBox!.x)
 })
 
 test('keeps the suggestion popup inside a 320px viewport', async ({ page }) => {
@@ -213,7 +216,7 @@ test('keeps the search pill usable without overflow at 320px', async ({ page }) 
   await page.goto('/')
 
   await expect(page.getByRole('combobox', { name: 'Steam name or ID' })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Search' })).toBeVisible()
+  await expect(page.locator('.player-search__icon')).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(320)
 })
 
