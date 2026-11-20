@@ -86,3 +86,50 @@ test('keeps the search pill usable without overflow at 320px', async ({ page }) 
   await expect(page.getByRole('button', { name: 'Search' })).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(320)
 })
+
+test('keeps empty guidance in flow above the footer on a short viewport', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 667, height: 375 })
+  await page.goto('/')
+
+  const guidance = await page
+    .getByText('Search by Steam name or ID to begin.')
+    .boundingBox()
+  const footer = await page.locator('.landing__footer').boundingBox()
+
+  expect(guidance).not.toBeNull()
+  expect(footer).not.toBeNull()
+  expect(guidance!.y + guidance!.height).toBeLessThanOrEqual(footer!.y)
+})
+
+test('keeps search instructions at readable contrast', async ({ page }) => {
+  await page.goto('/')
+
+  const colors = await page.getByRole('searchbox', { name: 'Steam name or ID' }).evaluate(
+    (input) => ({
+      placeholder: getComputedStyle(input, '::placeholder').color,
+      pill: getComputedStyle(input.parentElement!).backgroundColor,
+      hint: getComputedStyle(input.closest('form')!.querySelector('p')!).color,
+      page: getComputedStyle(document.documentElement).backgroundColor,
+    }),
+  )
+
+  expect(contrastRatio(colors.placeholder, colors.pill)).toBeGreaterThanOrEqual(4.5)
+  expect(contrastRatio(colors.hint, colors.page)).toBeGreaterThanOrEqual(4.5)
+})
+
+function contrastRatio(foreground: string, background: string) {
+  const luminance = (color: string) => {
+    const channels = color.match(/[\d.]+/g)!.slice(0, 3).map(Number).map((channel) => {
+      const normalized = channel / 255
+      return normalized <= 0.03928
+        ? normalized / 12.92
+        : ((normalized + 0.055) / 1.055) ** 2.4
+    })
+    return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2]
+  }
+  const light = luminance(foreground)
+  const dark = luminance(background)
+  return (Math.max(light, dark) + 0.05) / (Math.min(light, dark) + 0.05)
+}

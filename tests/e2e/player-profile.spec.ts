@@ -13,6 +13,10 @@ test('serves a meaningful profile document and completes streamed sections', asy
 
   await page.goto('/players/123')
   await expect(page.getByRole('heading', { level: 1, name: 'Exact Account' })).toBeVisible()
+  await expect(page.getByText('Player archive · Account 123')).toHaveCSS(
+    'text-transform',
+    'uppercase',
+  )
   await expect(page.getByRole('heading', { name: 'Infernus' })).toBeVisible()
   await expect(page.getByText('3 straight wins in the latest available matches.')).toBeVisible()
   await expect(page.getByText('19 / 3 / 14').first()).toBeVisible()

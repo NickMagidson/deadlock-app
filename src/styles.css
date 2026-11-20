@@ -92,6 +92,15 @@ a {
   font-style: normal;
 }
 
+.eyebrow {
+  margin: 0 0 1.1rem;
+  color: #b8a66f;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
 .landing__hero {
   align-self: center;
   width: min(100%, 42rem);
@@ -111,7 +120,7 @@ a {
 }
 
 .landing--searched {
-  grid-template-rows: auto auto 1fr auto;
+  grid-template-rows: auto 1fr auto;
   gap: 0;
 }
 
@@ -162,7 +171,7 @@ a {
 }
 
 .player-search input::placeholder {
-  color: #6f6b60;
+  color: #aaa596;
 }
 
 .player-search button,
@@ -219,7 +228,7 @@ a {
 
 .player-search > p {
   margin: 0.75rem 0 0;
-  color: #777266;
+  color: #aaa596;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.68rem;
   letter-spacing: 0.04em;
@@ -230,6 +239,7 @@ a {
   width: min(100%, 42rem);
   max-width: 42rem;
   margin: 0 auto 3rem;
+  text-align: left;
 }
 
 .search-results--message {
@@ -238,12 +248,8 @@ a {
 }
 
 .landing:not(.landing--searched) .search-results--message {
-  position: absolute;
-  top: calc(50% + 8.5rem);
-  left: 50%;
-  width: min(calc(100% - 2.5rem), 42rem);
-  margin: 0;
-  translate: -50% 0;
+  width: 100%;
+  margin: 1rem auto 0;
   text-align: center;
 }
 

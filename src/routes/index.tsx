@@ -53,13 +53,13 @@ function HomePage() {
           initialQuery={q}
           onSubmit={(query) => navigate({ search: { q: query } })}
         />
+        <SearchResults
+          error={error}
+          onRetry={() => router.invalidate()}
+          query={q}
+          results={results}
+        />
       </section>
-      <SearchResults
-        error={error}
-        onRetry={() => router.invalidate()}
-        query={q}
-        results={results}
-      />
       <footer className="landing__footer">
         <span>Community data, not affiliated with Valve</span>
         <span>Records may be incomplete or delayed</span>
