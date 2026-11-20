@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react'
-import type { ChangeEvent, FormEvent, KeyboardEvent } from 'react'
+import type { ChangeEvent, KeyboardEvent } from 'react'
 
 import type { PlayerSearchResult } from '../../lib/deadlock/models'
 import { usePlayerSuggestions } from './usePlayerSuggestions'
@@ -41,10 +41,6 @@ export function PlayerSearchForm({ getSuggestions, initialQuery, onSelect }: Pla
     if (!hasOptions || !activeOptionId) return
     document.getElementById(activeOptionId)?.scrollIntoView?.({ block: 'nearest' })
   }, [activeOptionId, hasOptions])
-
-  function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-  }
 
   function changeQuery(event: ChangeEvent<HTMLInputElement>) {
     const nextQuery = event.currentTarget.value
@@ -109,7 +105,7 @@ export function PlayerSearchForm({ getSuggestions, initialQuery, onSelect }: Pla
   }
 
   return (
-    <form action="/" className="player-search" method="get" role="search" onSubmit={submit}>
+    <div className="player-search" role="search">
       <label className="sr-only" htmlFor="player-query">Steam name or ID</label>
       <div className="player-search__combobox">
         <div className="player-search__control">
@@ -183,14 +179,14 @@ export function PlayerSearchForm({ getSuggestions, initialQuery, onSelect }: Pla
         ) : null}
       </div>
       <p>Steam display name, SteamID3, or SteamID64</p>
-    </form>
+    </div>
   )
 }
 
 function suggestionStatus(status: 'loading' | 'empty' | 'error') {
   if (status === 'loading') return 'Searching players…'
   if (status === 'empty') return 'No player suggestions.'
-  return 'Suggestions unavailable. You can still search.'
+  return 'Couldn’t load player suggestions. Try again in a moment.'
 }
 
 function initials(name: string) {

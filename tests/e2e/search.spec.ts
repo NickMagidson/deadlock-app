@@ -2,6 +2,18 @@ import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
 import type { Page } from '@playwright/test'
 
+test('plain Enter cannot submit the server-rendered search before hydration', async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false })
+  const page = await context.newPage()
+  await page.goto('/')
+  const input = page.getByRole('combobox', { name: 'Steam name or ID' })
+  await input.fill('Ivy')
+  await input.press('Enter')
+
+  await expect(page).toHaveURL('/')
+  await context.close()
+})
+
 test('searches by name and preserves results on reload', async ({ page }) => {
   await page.goto('/?q=Ivy')
   await expect(page).toHaveURL('/?q=Ivy')
@@ -59,7 +71,7 @@ test('keeps failed suggestions non-blocking', async ({ page }) => {
   const input = await hydratedSearchInput(page)
   await input.fill('Busy')
   await expect(page.getByRole('status')).toContainText(
-    'Suggestions unavailable. You can still search.',
+    'Couldn’t load player suggestions. Try again in a moment.',
   )
   await input.press('Enter')
 
@@ -243,7 +255,7 @@ test('keeps search instructions at readable contrast', async ({ page }) => {
     (input) => ({
       placeholder: getComputedStyle(input, '::placeholder').color,
       pill: getComputedStyle(input.parentElement!).backgroundColor,
-      hint: getComputedStyle(input.closest('form')!.querySelector('p')!).color,
+      hint: getComputedStyle(input.closest('[role="search"]')!.querySelector('p')!).color,
       page: getComputedStyle(document.documentElement).backgroundColor,
     }),
   )

@@ -44,8 +44,6 @@ describe('PlayerSearchForm', () => {
     await act(async () => {
       root = hydrateRoot(container, element)
     })
-    fireEvent.submit(container.querySelector('form')!)
-
     expect(input).toHaveValue('EarlyTyped')
     expect(onSelect).not.toHaveBeenCalled()
     await act(async () => root.unmount())
@@ -278,7 +276,7 @@ describe('PlayerSearchForm', () => {
     const input = screen.getByRole('combobox', { name: 'Steam name or ID' })
     await user.type(input, 'Ivy')
     expect(screen.getByRole('status')).toHaveTextContent('Searching players')
-    await screen.findByText('Suggestions unavailable. You can still search.')
+    await screen.findByText('Couldn’t load player suggestions. Try again in a moment.')
     await user.keyboard('{Enter}')
 
     expect(onSelect).not.toHaveBeenCalled()
