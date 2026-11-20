@@ -1,5 +1,7 @@
 import { createMemoryHistory, createRootRoute, createRoute, createRouter, RouterProvider } from '@tanstack/react-router'
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { hydrateRoot } from 'react-dom/client'
+import { renderToString } from 'react-dom/server'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -21,6 +23,35 @@ describe('PlayerSearchForm', () => {
       'data-hydrated',
       'true',
     )
+  })
+
+  it('preserves text entered before hydration and submits it', async () => {
+    let submitted = ''
+    const element = (
+      <PlayerSearchForm
+        getSuggestions={async () => []}
+        initialQuery=""
+        onSubmit={(query) => {
+          submitted = query
+        }}
+      />
+    )
+    const container = document.createElement('div')
+    container.innerHTML = renderToString(element)
+    document.body.append(container)
+    const input = container.querySelector('input')!
+    input.value = 'EarlyTyped'
+
+    let root: ReturnType<typeof hydrateRoot>
+    await act(async () => {
+      root = hydrateRoot(container, element)
+    })
+    fireEvent.submit(container.querySelector('form')!)
+
+    expect(input).toHaveValue('EarlyTyped')
+    expect(submitted).toBe('EarlyTyped')
+    await act(async () => root.unmount())
+    container.remove()
   })
 
   it('submits typed text with Enter when no option is active', async () => {
@@ -100,8 +131,11 @@ describe('PlayerSearchForm', () => {
     await user.click(await screen.findByRole('option', { name: 'Ivy' }))
 
     expect(input).toHaveValue('Ivy')
+    expect(input).toHaveFocus()
     expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
     expect(onSubmit).not.toHaveBeenCalled()
+    await user.keyboard('{Enter}')
+    expect(onSubmit).toHaveBeenCalledWith('Ivy')
   })
 
   it('uses initials when an option has no avatar', async () => {
@@ -164,6 +198,11 @@ describe('PlayerSearchForm', () => {
 
     expect(input).toHaveValue('Iv')
     expect(onSubmit).not.toHaveBeenCalled()
+
+    fireEvent.compositionEnd(input)
+    fireEvent.keyDown(input, { key: 'Enter', keyCode: 229 })
+    expect(input).toHaveValue('Iv')
+    expect(onSubmit).not.toHaveBeenCalled()
   })
 
   it('supports Home End and Escape', async () => {
@@ -186,6 +225,9 @@ describe('PlayerSearchForm', () => {
     await user.keyboard('{Escape}')
     expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
     expect(input).not.toHaveAttribute('aria-activedescendant')
+    await user.keyboard('{ArrowDown}')
+    expect(screen.getByRole('listbox')).toBeVisible()
+    expect(screen.getAllByRole('option')[0]).toHaveAttribute('aria-selected', 'true')
   })
 
   it('closes suggestions when focus leaves the combobox', async () => {

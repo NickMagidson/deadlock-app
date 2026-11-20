@@ -17,17 +17,30 @@ export function PlayerSearchForm({ getSuggestions, initialQuery, onSubmit }: Pla
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
   const [isComposing, setIsComposing] = useState(false)
   const [isHydrated, setIsHydrated] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
   const pointerSelecting = useRef(false)
   const listboxId = useId()
   const { suggestions, status } = usePlayerSuggestions(suggestionQuery, getSuggestions)
-  const hasOptions = isOpen && status === 'ready' && suggestions.length > 0
+  const hasReadySuggestions = status === 'ready' && suggestions.length > 0
+  const hasOptions = isOpen && hasReadySuggestions
   const activeOptionId = activeIndex === null
     ? undefined
     : `${listboxId}-${suggestions[activeIndex]?.accountId}`
 
   useEffect(() => {
+    const liveQuery = inputRef.current?.value ?? initialQuery
+    if (liveQuery !== query) {
+      setQuery(liveQuery)
+      setSuggestionQuery(liveQuery)
+      setIsOpen(Boolean(liveQuery.trim()))
+    }
     setIsHydrated(true)
   }, [])
+
+  useEffect(() => {
+    if (!hasOptions || !activeOptionId) return
+    document.getElementById(activeOptionId)?.scrollIntoView?.({ block: 'nearest' })
+  }, [activeOptionId, hasOptions])
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -49,10 +62,11 @@ export function PlayerSearchForm({ getSuggestions, initialQuery, onSubmit }: Pla
     setIsOpen(false)
     setActiveIndex(null)
     pointerSelecting.current = false
+    inputRef.current?.focus()
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
-    if (isComposing || event.nativeEvent.isComposing) return
+    if (isComposing || event.nativeEvent.isComposing || event.keyCode === 229) return
 
     if (event.key === 'Escape') {
       event.preventDefault()
@@ -61,21 +75,23 @@ export function PlayerSearchForm({ getSuggestions, initialQuery, onSubmit }: Pla
       return
     }
 
-    if (!hasOptions) return
-
-    if (event.key === 'ArrowDown') {
+    if (event.key === 'ArrowDown' && hasReadySuggestions) {
       event.preventDefault()
+      setIsOpen(true)
       setActiveIndex((current) => current === null ? 0 : (current + 1) % suggestions.length)
       return
     }
 
-    if (event.key === 'ArrowUp') {
+    if (event.key === 'ArrowUp' && hasReadySuggestions) {
       event.preventDefault()
+      setIsOpen(true)
       setActiveIndex((current) => current === null
         ? suggestions.length - 1
         : (current - 1 + suggestions.length) % suggestions.length)
       return
     }
+
+    if (!hasOptions) return
 
     if (event.key === 'Home') {
       event.preventDefault()
@@ -110,6 +126,7 @@ export function PlayerSearchForm({ getSuggestions, initialQuery, onSubmit }: Pla
             maxLength={100}
             name="q"
             placeholder="ExamplePlayer or 7656119…"
+            ref={inputRef}
             role="combobox"
             type="search"
             value={query}
@@ -139,8 +156,15 @@ export function PlayerSearchForm({ getSuggestions, initialQuery, onSubmit }: Pla
                 role="option"
                 aria-selected={activeIndex === index}
                 onClick={() => selectSuggestion(player)}
-                onPointerDown={() => {
+                onPointerCancel={() => {
+                  pointerSelecting.current = false
+                }}
+                onPointerDown={(event) => {
+                  event.preventDefault()
                   pointerSelecting.current = true
+                }}
+                onPointerUp={() => {
+                  pointerSelecting.current = false
                 }}
               >
                 {player.avatarUrl ? (

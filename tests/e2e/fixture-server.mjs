@@ -28,6 +28,15 @@ createServer((request, response) => {
         ]),
       )
     }
+    if (query === 'Many') {
+      return response.end(
+        JSON.stringify(
+          Array.from({ length: 10 }, (_, index) =>
+            profile(1_000 + index, `Player ${index + 1}`),
+          ),
+        ),
+      )
+    }
     if (query === 'Missing') {
       response.statusCode = 404
       return response.end('{"error":"not found"}')

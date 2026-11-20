@@ -31,8 +31,9 @@ test('suggests players after typing and waits for Enter to submit', async ({ pag
   await options.nth(0).click()
 
   await expect(input).toHaveValue('Ivy')
+  await expect(input).toBeFocused()
   await expect(page).toHaveURL('/')
-  await input.press('Enter')
+  await page.keyboard.press('Enter')
   await expect(page).toHaveURL('/?q=Ivy')
   await expect(page.getByRole('link', { name: /view ivy/i })).toBeVisible()
 })
@@ -120,6 +121,28 @@ test('open suggestion popup has no detectable accessibility violations', async (
 
   const results = await new AxeBuilder({ page }).analyze()
   expect(results.violations).toEqual([])
+})
+
+test('scrolls a keyboard-active suggestion into view', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 700 })
+  await page.goto('/')
+  const input = await hydratedSearchInput(page)
+  await input.fill('Many')
+  const listbox = page.getByRole('listbox', { name: 'Player suggestions' })
+  const options = page.getByRole('option')
+  await expect(options).toHaveCount(10)
+  await input.press('End')
+
+  await expect(options.nth(9)).toHaveAttribute('aria-selected', 'true')
+  await expect.poll(async () => listbox.evaluate((element) => element.scrollTop)).toBeGreaterThan(0)
+  const listboxBox = await listbox.boundingBox()
+  const activeBox = await options.nth(9).boundingBox()
+  expect(listboxBox).not.toBeNull()
+  expect(activeBox).not.toBeNull()
+  expect(activeBox!.y).toBeGreaterThanOrEqual(listboxBox!.y)
+  expect(activeBox!.y + activeBox!.height).toBeLessThanOrEqual(
+    listboxBox!.y + listboxBox!.height,
+  )
 })
 
 test('resolves a raw account ID before name search', async ({ page }) => {
