@@ -1,10 +1,12 @@
+import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
 import type { Page } from '@playwright/test'
 
 test('searches by name and preserves results on reload', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('combobox', { name: 'Steam name or ID' }).fill('Ivy')
-  await page.getByRole('combobox', { name: 'Steam name or ID' }).press('Enter')
+  const input = await hydratedSearchInput(page)
+  await input.fill('Ivy')
+  await input.press('Enter')
 
   await expect(page).toHaveURL('/?q=Ivy')
   await expect(page.getByRole('link', { name: /view ivy/i })).toHaveAttribute(
@@ -88,6 +90,36 @@ test('keeps the suggestion popup inside a 320px viewport', async ({ page }) => {
   expect(box!.x).toBeGreaterThanOrEqual(0)
   expect(box!.x + box!.width).toBeLessThanOrEqual(320)
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(320)
+})
+
+test('supports popup bounds, dismissal, and clearing from the keyboard', async ({ page }) => {
+  await page.goto('/')
+  const input = await hydratedSearchInput(page)
+  await input.fill('Pl')
+  await expect(page.getByRole('status')).toContainText('Searching players')
+  const options = page.getByRole('option')
+  await expect(options).toHaveCount(2)
+
+  await input.press('End')
+  await expect(options.nth(1)).toHaveAttribute('aria-selected', 'true')
+  await input.press('Home')
+  await expect(options.nth(0)).toHaveAttribute('aria-selected', 'true')
+  await input.press('Escape')
+  await expect(page.getByRole('listbox')).toHaveCount(0)
+  await expect(input).toHaveValue('Pl')
+
+  await input.fill('')
+  await expect(page.getByRole('status')).toHaveCount(0)
+  await expect(input).toHaveAttribute('aria-expanded', 'false')
+})
+
+test('open suggestion popup has no detectable accessibility violations', async ({ page }) => {
+  await page.goto('/')
+  await (await hydratedSearchInput(page)).fill('Pl')
+  await expect(page.getByRole('listbox', { name: 'Player suggestions' })).toBeVisible()
+
+  const results = await new AxeBuilder({ page }).analyze()
+  expect(results.violations).toEqual([])
 })
 
 test('resolves a raw account ID before name search', async ({ page }) => {
