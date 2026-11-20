@@ -2,6 +2,7 @@ import { createServer } from 'node:http'
 
 const profiles = {
   Ivy: profile(123, 'Ivy'),
+  Pocket: profile(456, 'Pocket'),
   '123': profile(123, 'Exact Account'),
   '999': profile(999, 'RetryPlayer'),
   '4294967296': profile(456, '4294967296'),
@@ -19,6 +20,14 @@ createServer((request, response) => {
   apiCalls += 1
   if (url.pathname === '/v1/players/steam-search') {
     const query = url.searchParams.get('search_query') ?? ''
+    if (query === 'Pl') {
+      return response.end(
+        JSON.stringify([
+          profile(123, 'Ivy', 'https://avatars.example.com/ivy.jpg'),
+          profile(456, 'Pocket', 'https://avatars.example.com/pocket.jpg'),
+        ]),
+      )
+    }
     if (query === 'Missing') {
       response.statusCode = 404
       return response.end('{"error":"not found"}')
@@ -114,16 +123,16 @@ createServer((request, response) => {
 
   response.statusCode = 404
   response.end('{"error":"fixture not found"}')
-}).listen(3100, '127.0.0.1')
+}).listen(Number(process.env.E2E_API_PORT ?? 3100), '127.0.0.1')
 
-function profile(accountId, name) {
+function profile(accountId, name, avatarUrl = '') {
   return {
     account_id: accountId,
     personaname: name,
     profileurl: `https://steamcommunity.com/profiles/${accountId}`,
-    avatar: '',
-    avatarmedium: '',
-    avatarfull: '',
+    avatar: avatarUrl,
+    avatarmedium: avatarUrl,
+    avatarfull: avatarUrl,
     last_updated: '2026-11-17T20:00:00Z',
     friends: [],
     matches_played_last_30d: 12,

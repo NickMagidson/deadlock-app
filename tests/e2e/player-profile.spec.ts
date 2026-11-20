@@ -41,9 +41,10 @@ test('rejects an invalid account before making an upstream request', async ({
   page,
   request,
 }) => {
-  const before = await (await request.get('http://127.0.0.1:3100/counts')).json()
+  const fixtureOrigin = `http://127.0.0.1:${process.env.E2E_API_PORT ?? 3100}`
+  const before = await (await request.get(`${fixtureOrigin}/counts`)).json()
   await page.goto('/players/not-an-account')
   await expect(page.getByRole('heading', { name: 'This record could not be found' })).toBeVisible()
-  const after = await (await request.get('http://127.0.0.1:3100/counts')).json()
+  const after = await (await request.get(`${fixtureOrigin}/counts`)).json()
   expect(after.api).toBe(before.api)
 })

@@ -12,7 +12,9 @@ export function getRouter() {
     stringifySearch: (search) => {
       const params = new URLSearchParams()
       for (const [key, value] of Object.entries(search)) {
-        if (value !== undefined && value !== null) params.set(key, String(value))
+        if (value !== undefined && value !== null && value !== '') {
+          params.set(key, String(value))
+        }
       }
       const serialized = params.toString()
       return serialized ? `?${serialized}` : ''

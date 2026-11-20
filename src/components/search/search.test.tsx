@@ -8,6 +8,21 @@ import { PlayerSearchForm } from './PlayerSearchForm'
 import { SearchResults } from './SearchResults'
 
 describe('PlayerSearchForm', () => {
+  it('marks the combobox as hydrated when it is interactive', () => {
+    render(
+      <PlayerSearchForm
+        getSuggestions={async () => []}
+        initialQuery=""
+        onSubmit={() => undefined}
+      />,
+    )
+
+    expect(screen.getByRole('combobox', { name: 'Steam name or ID' })).toHaveAttribute(
+      'data-hydrated',
+      'true',
+    )
+  })
+
   it('submits typed text with Enter when no option is active', async () => {
     const user = userEvent.setup()
     let submitted = ''

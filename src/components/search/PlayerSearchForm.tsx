@@ -1,4 +1,4 @@
-import { useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import type { ChangeEvent, FormEvent, KeyboardEvent } from 'react'
 
 import type { PlayerSearchResult } from '../../lib/deadlock/models'
@@ -16,6 +16,7 @@ export function PlayerSearchForm({ getSuggestions, initialQuery, onSubmit }: Pla
   const [isOpen, setIsOpen] = useState(false)
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
   const [isComposing, setIsComposing] = useState(false)
+  const [isHydrated, setIsHydrated] = useState(false)
   const pointerSelecting = useRef(false)
   const listboxId = useId()
   const { suggestions, status } = usePlayerSuggestions(suggestionQuery, getSuggestions)
@@ -23,6 +24,10 @@ export function PlayerSearchForm({ getSuggestions, initialQuery, onSubmit }: Pla
   const activeOptionId = activeIndex === null
     ? undefined
     : `${listboxId}-${suggestions[activeIndex]?.accountId}`
+
+  useEffect(() => {
+    setIsHydrated(true)
+  }, [])
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -100,6 +105,7 @@ export function PlayerSearchForm({ getSuggestions, initialQuery, onSubmit }: Pla
             aria-autocomplete="list"
             aria-controls={listboxId}
             aria-expanded={hasOptions}
+            data-hydrated={isHydrated}
             id="player-query"
             maxLength={100}
             name="q"

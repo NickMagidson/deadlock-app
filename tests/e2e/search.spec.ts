@@ -1,9 +1,10 @@
 import { expect, test } from '@playwright/test'
+import type { Page } from '@playwright/test'
 
 test('searches by name and preserves results on reload', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('searchbox', { name: 'Steam name or ID' }).fill('Ivy')
-  await page.getByRole('searchbox', { name: 'Steam name or ID' }).press('Enter')
+  await page.getByRole('combobox', { name: 'Steam name or ID' }).fill('Ivy')
+  await page.getByRole('combobox', { name: 'Steam name or ID' }).press('Enter')
 
   await expect(page).toHaveURL('/?q=Ivy')
   await expect(page.getByRole('link', { name: /view ivy/i })).toHaveAttribute(
@@ -13,6 +14,80 @@ test('searches by name and preserves results on reload', async ({ page }) => {
 
   await page.reload()
   await expect(page.getByRole('status')).toContainText('1 player found')
+})
+
+test('suggests players after typing and waits for Enter to submit', async ({ page }) => {
+  await page.goto('/')
+  const input = await hydratedSearchInput(page)
+  await input.fill('Pl')
+
+  const options = page.getByRole('option')
+  await expect(options).toHaveCount(2)
+  await expect(options.nth(0)).toContainText('Ivy')
+  await expect(options.nth(1)).toContainText('Pocket')
+  await expect(options.locator('img')).toHaveCount(2)
+  await options.nth(0).click()
+
+  await expect(input).toHaveValue('Ivy')
+  await expect(page).toHaveURL('/')
+  await input.press('Enter')
+  await expect(page).toHaveURL('/?q=Ivy')
+  await expect(page.getByRole('link', { name: /view ivy/i })).toBeVisible()
+})
+
+test('supports keyboard selection without immediate navigation', async ({ page }) => {
+  await page.goto('/')
+  const input = await hydratedSearchInput(page)
+  await input.fill('Pl')
+  await expect(page.getByRole('option')).toHaveCount(2)
+
+  await input.press('ArrowDown')
+  await input.press('ArrowDown')
+  await input.press('Enter')
+  await expect(input).toHaveValue('Pocket')
+  await expect(page).toHaveURL('/')
+
+  await input.press('Enter')
+  await expect(page).toHaveURL('/?q=Pocket')
+  await expect(page.getByRole('link', { name: /view pocket/i })).toBeVisible()
+})
+
+test('submits unmatched text normally', async ({ page }) => {
+  await page.goto('/')
+  const input = await hydratedSearchInput(page)
+  await input.fill('Nobody')
+  await expect(page.getByRole('status')).toContainText('No player suggestions')
+  await input.press('Enter')
+
+  await expect(page).toHaveURL('/?q=Nobody')
+  await expect(page.getByText('No players found for “Nobody”.')).toBeVisible()
+})
+
+test('keeps failed suggestions non-blocking', async ({ page }) => {
+  await page.goto('/')
+  const input = await hydratedSearchInput(page)
+  await input.fill('Busy')
+  await expect(page.getByRole('status')).toContainText(
+    'Suggestions unavailable. You can still search.',
+  )
+  await input.press('Enter')
+
+  await expect(page).toHaveURL('/?q=Busy')
+  await expect(page.getByRole('alert')).toContainText('Deadlock is busy')
+})
+
+test('keeps the suggestion popup inside a 320px viewport', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 700 })
+  await page.goto('/')
+  await (await hydratedSearchInput(page)).fill('Pl')
+  const popup = page.getByRole('listbox', { name: 'Player suggestions' })
+  await expect(popup).toBeVisible()
+
+  const box = await popup.boundingBox()
+  expect(box).not.toBeNull()
+  expect(box!.x).toBeGreaterThanOrEqual(0)
+  expect(box!.x + box!.width).toBeLessThanOrEqual(320)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(320)
 })
 
 test('resolves a raw account ID before name search', async ({ page }) => {
@@ -82,7 +157,7 @@ test('keeps the search pill usable without overflow at 320px', async ({ page }) 
   await page.setViewportSize({ width: 320, height: 700 })
   await page.goto('/')
 
-  await expect(page.getByRole('searchbox', { name: 'Steam name or ID' })).toBeVisible()
+  await expect(page.getByRole('combobox', { name: 'Steam name or ID' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Search' })).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(320)
 })
@@ -106,7 +181,7 @@ test('keeps empty guidance in flow above the footer on a short viewport', async 
 test('keeps search instructions at readable contrast', async ({ page }) => {
   await page.goto('/')
 
-  const colors = await page.getByRole('searchbox', { name: 'Steam name or ID' }).evaluate(
+  const colors = await page.getByRole('combobox', { name: 'Steam name or ID' }).evaluate(
     (input) => ({
       placeholder: getComputedStyle(input, '::placeholder').color,
       pill: getComputedStyle(input.parentElement!).backgroundColor,
@@ -132,4 +207,10 @@ function contrastRatio(foreground: string, background: string) {
   const light = luminance(foreground)
   const dark = luminance(background)
   return (Math.max(light, dark) + 0.05) / (Math.min(light, dark) + 0.05)
+}
+
+async function hydratedSearchInput(page: Page) {
+  const input = page.getByRole('combobox', { name: 'Steam name or ID' })
+  await expect(input).toHaveAttribute('data-hydrated', 'true')
+  return input
 }

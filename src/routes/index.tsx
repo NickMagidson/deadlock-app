@@ -49,6 +49,7 @@ function HomePage() {
       <section className="landing__hero">
         <h1>Find your Deadlock story</h1>
         <PlayerSearchForm
+          getSuggestions={(query) => searchPlayers({ data: { query } })}
           key={q}
           initialQuery={q}
           onSubmit={(query) => navigate({ search: { q: query } })}

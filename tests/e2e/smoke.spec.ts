@@ -8,6 +8,6 @@ test('renders the Deadlock application document', async ({ page }) => {
   await expect(
     page.getByRole('heading', { level: 1, name: 'Find your Deadlock story' }),
   ).toBeVisible()
-  await expect(page.getByRole('searchbox', { name: 'Steam name or ID' })).toBeVisible()
+  await expect(page.getByRole('combobox', { name: 'Steam name or ID' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Search' })).toBeVisible()
 })
