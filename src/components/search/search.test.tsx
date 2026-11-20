@@ -15,7 +15,7 @@ describe('PlayerSearchForm', () => {
       <PlayerSearchForm
         getSuggestions={async () => []}
         initialQuery=""
-        onSubmit={() => undefined}
+        onSelect={() => undefined}
       />,
     )
 
@@ -25,15 +25,13 @@ describe('PlayerSearchForm', () => {
     )
   })
 
-  it('preserves text entered before hydration and submits it', async () => {
-    let submitted = ''
+  it('preserves text entered before hydration without selecting a player', async () => {
+    const onSelect = vi.fn()
     const element = (
       <PlayerSearchForm
         getSuggestions={async () => []}
         initialQuery=""
-        onSubmit={(query) => {
-          submitted = query
-        }}
+        onSelect={onSelect}
       />
     )
     const container = document.createElement('div')
@@ -49,47 +47,43 @@ describe('PlayerSearchForm', () => {
     fireEvent.submit(container.querySelector('form')!)
 
     expect(input).toHaveValue('EarlyTyped')
-    expect(submitted).toBe('EarlyTyped')
+    expect(onSelect).not.toHaveBeenCalled()
     await act(async () => root.unmount())
     container.remove()
   })
 
-  it('submits typed text with Enter when no option is active', async () => {
+  it('does not select typed text with Enter when no option is active', async () => {
     const user = userEvent.setup()
-    let submitted = ''
+    const onSelect = vi.fn()
     render(
       <PlayerSearchForm
         getSuggestions={async () => []}
         initialQuery=""
-        onSubmit={(query) => {
-          submitted = query
-        }}
+        onSelect={onSelect}
       />,
     )
 
     await user.type(screen.getByRole('combobox', { name: 'Steam name or ID' }), 'Ivy')
     await user.keyboard('{Enter}')
 
-    expect(submitted).toBe('Ivy')
+    expect(onSelect).not.toHaveBeenCalled()
   })
 
-  it('exposes a concise search action and trims the submitted query', async () => {
-    const user = userEvent.setup()
-    let submitted = ''
-    render(
+  it('places a decorative search icon before the input', () => {
+    const { container } = render(
       <PlayerSearchForm
         getSuggestions={async () => []}
         initialQuery=""
-        onSubmit={(query) => {
-          submitted = query
-        }}
+        onSelect={() => undefined}
       />,
     )
 
-    await user.type(screen.getByRole('combobox', { name: 'Steam name or ID' }), ' Ivy ')
-    await user.click(screen.getByRole('button', { name: 'Search' }))
-
-    expect(submitted).toBe('Ivy')
+    const control = container.querySelector('.player-search__control')!
+    const icon = control.querySelector('.player-search__icon')!
+    const input = screen.getByRole('combobox', { name: 'Steam name or ID' })
+    expect(icon).toHaveAttribute('aria-hidden', 'true')
+    expect(icon.compareDocumentPosition(input) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Search' })).not.toBeInTheDocument()
   })
 
   it('opens avatar and Steam-name options after typing', async () => {
@@ -98,7 +92,7 @@ describe('PlayerSearchForm', () => {
       <PlayerSearchForm
         getSuggestions={async () => [result({ avatarUrl: 'https://cdn.example.com/ivy.jpg' })]}
         initialQuery=""
-        onSubmit={() => undefined}
+        onSelect={() => undefined}
       />,
     )
 
@@ -115,14 +109,14 @@ describe('PlayerSearchForm', () => {
     expect(within(listbox).queryByText('123')).not.toBeInTheDocument()
   })
 
-  it('fills the field without submitting when an option is clicked', async () => {
+  it('selects the complete player once when an option is clicked', async () => {
     const user = userEvent.setup()
-    const onSubmit = vi.fn()
+    const onSelect = vi.fn()
     render(
       <PlayerSearchForm
         getSuggestions={async () => [result()]}
         initialQuery=""
-        onSubmit={onSubmit}
+        onSelect={onSelect}
       />,
     )
 
@@ -130,12 +124,8 @@ describe('PlayerSearchForm', () => {
     await user.type(input, 'Iv')
     await user.click(await screen.findByRole('option', { name: 'Ivy' }))
 
-    expect(input).toHaveValue('Ivy')
-    expect(input).toHaveFocus()
-    expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
-    expect(onSubmit).not.toHaveBeenCalled()
-    await user.keyboard('{Enter}')
-    expect(onSubmit).toHaveBeenCalledWith('Ivy')
+    expect(onSelect).toHaveBeenCalledTimes(1)
+    expect(onSelect).toHaveBeenCalledWith(result())
   })
 
   it('uses initials when an option has no avatar', async () => {
@@ -144,7 +134,7 @@ describe('PlayerSearchForm', () => {
       <PlayerSearchForm
         getSuggestions={async () => [result({ displayName: 'Pocket', avatarUrl: null })]}
         initialQuery=""
-        onSubmit={() => undefined}
+        onSelect={() => undefined}
       />,
     )
 
@@ -156,12 +146,12 @@ describe('PlayerSearchForm', () => {
 
   it('moves the active option with arrows and selects it with Enter', async () => {
     const user = userEvent.setup()
-    const onSubmit = vi.fn()
+    const onSelect = vi.fn()
     render(
       <PlayerSearchForm
         getSuggestions={async () => [result(), result({ accountId: 456, displayName: 'Pocket' })]}
         initialQuery=""
-        onSubmit={onSubmit}
+        onSelect={onSelect}
       />,
     )
 
@@ -173,19 +163,18 @@ describe('PlayerSearchForm', () => {
     expect(options[1]).toHaveAttribute('aria-selected', 'true')
     expect(input).toHaveAttribute('aria-activedescendant', options[1].id)
     await user.keyboard('{Enter}')
-    expect(input).toHaveValue('Pocket')
-    expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
-    expect(onSubmit).not.toHaveBeenCalled()
+    expect(onSelect).toHaveBeenCalledTimes(1)
+    expect(onSelect).toHaveBeenCalledWith(result({ accountId: 456, displayName: 'Pocket' }))
   })
 
   it('does not select or submit while text is being composed', async () => {
     const user = userEvent.setup()
-    const onSubmit = vi.fn()
+    const onSelect = vi.fn()
     render(
       <PlayerSearchForm
         getSuggestions={async () => [result()]}
         initialQuery=""
-        onSubmit={onSubmit}
+        onSelect={onSelect}
       />,
     )
 
@@ -197,21 +186,22 @@ describe('PlayerSearchForm', () => {
     fireEvent.keyDown(input, { isComposing: true, key: 'Enter' })
 
     expect(input).toHaveValue('Iv')
-    expect(onSubmit).not.toHaveBeenCalled()
+    expect(onSelect).not.toHaveBeenCalled()
 
     fireEvent.compositionEnd(input)
     fireEvent.keyDown(input, { key: 'Enter', keyCode: 229 })
     expect(input).toHaveValue('Iv')
-    expect(onSubmit).not.toHaveBeenCalled()
+    expect(onSelect).not.toHaveBeenCalled()
   })
 
   it('supports Home End and Escape', async () => {
     const user = userEvent.setup()
+    const onSelect = vi.fn()
     render(
       <PlayerSearchForm
         getSuggestions={async () => [result(), result({ accountId: 456, displayName: 'Pocket' })]}
         initialQuery=""
-        onSubmit={() => undefined}
+        onSelect={onSelect}
       />,
     )
 
@@ -225,6 +215,8 @@ describe('PlayerSearchForm', () => {
     await user.keyboard('{Escape}')
     expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
     expect(input).not.toHaveAttribute('aria-activedescendant')
+    await user.keyboard('{Enter}')
+    expect(onSelect).not.toHaveBeenCalled()
     await user.keyboard('{ArrowDown}')
     expect(screen.getByRole('listbox')).toBeVisible()
     expect(screen.getAllByRole('option')[0]).toHaveAttribute('aria-selected', 'true')
@@ -236,7 +228,7 @@ describe('PlayerSearchForm', () => {
       <PlayerSearchForm
         getSuggestions={async () => [result()]}
         initialQuery=""
-        onSubmit={() => undefined}
+        onSelect={() => undefined}
       />,
     )
 
@@ -250,11 +242,12 @@ describe('PlayerSearchForm', () => {
 
   it('keeps pointer selection when the input blurs', async () => {
     const user = userEvent.setup()
+    const onSelect = vi.fn()
     render(
       <PlayerSearchForm
         getSuggestions={async () => [result()]}
         initialQuery=""
-        onSubmit={() => undefined}
+        onSelect={onSelect}
       />,
     )
 
@@ -265,20 +258,20 @@ describe('PlayerSearchForm', () => {
     fireEvent.blur(input)
     fireEvent.click(option)
 
-    expect(input).toHaveValue('Ivy')
-    expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+    expect(onSelect).toHaveBeenCalledTimes(1)
+    expect(onSelect).toHaveBeenCalledWith(result())
   })
 
-  it('allows submission after suggestion loading fails', async () => {
+  it('does not select typed text after suggestion loading fails', async () => {
     const user = userEvent.setup()
-    const onSubmit = vi.fn()
+    const onSelect = vi.fn()
     render(
       <PlayerSearchForm
         getSuggestions={async () => {
           throw new Error('offline')
         }}
         initialQuery=""
-        onSubmit={onSubmit}
+        onSelect={onSelect}
       />,
     )
 
@@ -286,9 +279,9 @@ describe('PlayerSearchForm', () => {
     await user.type(input, 'Ivy')
     expect(screen.getByRole('status')).toHaveTextContent('Searching players')
     await screen.findByText('Suggestions unavailable. You can still search.')
-    await user.click(screen.getByRole('button', { name: 'Search' }))
+    await user.keyboard('{Enter}')
 
-    expect(onSubmit).toHaveBeenCalledWith('Ivy')
+    expect(onSelect).not.toHaveBeenCalled()
   })
 
   it('announces when no suggestions match', async () => {
@@ -297,7 +290,7 @@ describe('PlayerSearchForm', () => {
       <PlayerSearchForm
         getSuggestions={async () => []}
         initialQuery=""
-        onSubmit={() => undefined}
+        onSelect={() => undefined}
       />,
     )
 

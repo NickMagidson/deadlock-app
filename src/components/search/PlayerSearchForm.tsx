@@ -7,10 +7,10 @@ import { usePlayerSuggestions } from './usePlayerSuggestions'
 interface PlayerSearchFormProps {
   getSuggestions: (query: string) => Promise<PlayerSearchResult[]>
   initialQuery: string
-  onSubmit: (query: string) => void
+  onSelect: (player: PlayerSearchResult) => void
 }
 
-export function PlayerSearchForm({ getSuggestions, initialQuery, onSubmit }: PlayerSearchFormProps) {
+export function PlayerSearchForm({ getSuggestions, initialQuery, onSelect }: PlayerSearchFormProps) {
   const [query, setQuery] = useState(initialQuery)
   const [suggestionQuery, setSuggestionQuery] = useState('')
   const [isOpen, setIsOpen] = useState(false)
@@ -44,8 +44,6 @@ export function PlayerSearchForm({ getSuggestions, initialQuery, onSubmit }: Pla
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (isComposing) return
-    onSubmit(query.trim())
   }
 
   function changeQuery(event: ChangeEvent<HTMLInputElement>) {
@@ -57,12 +55,11 @@ export function PlayerSearchForm({ getSuggestions, initialQuery, onSubmit }: Pla
   }
 
   function selectSuggestion(player: PlayerSearchResult) {
-    setQuery(player.displayName)
     setSuggestionQuery('')
     setIsOpen(false)
     setActiveIndex(null)
     pointerSelecting.current = false
-    inputRef.current?.focus()
+    onSelect(player)
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
@@ -116,6 +113,12 @@ export function PlayerSearchForm({ getSuggestions, initialQuery, onSubmit }: Pla
       <label className="sr-only" htmlFor="player-query">Steam name or ID</label>
       <div className="player-search__combobox">
         <div className="player-search__control">
+          <span aria-hidden="true" className="player-search__icon">
+            <svg viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="6" />
+              <path d="m16 16 4 4" />
+            </svg>
+          </span>
           <input
             aria-activedescendant={activeOptionId}
             aria-autocomplete="list"
@@ -140,12 +143,6 @@ export function PlayerSearchForm({ getSuggestions, initialQuery, onSubmit }: Pla
             onCompositionStart={() => setIsComposing(true)}
             onKeyDown={handleKeyDown}
           />
-          <button aria-label="Search" type="submit">
-            <svg aria-hidden="true" viewBox="0 0 24 24">
-              <circle cx="11" cy="11" r="6" />
-              <path d="m16 16 4 4" />
-            </svg>
-          </button>
         </div>
         {hasOptions ? (
           <ul aria-label="Player suggestions" className="player-suggestions" id={listboxId} role="listbox">

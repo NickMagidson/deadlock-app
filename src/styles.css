@@ -170,7 +170,7 @@ a {
   outline: 0;
   background: transparent;
   color: #f5efdf;
-  padding: 1rem 0.4rem 1rem 1.35rem;
+  padding: 1rem 1.35rem 1rem 0.4rem;
   font: inherit;
 }
 
@@ -178,7 +178,6 @@ a {
   color: #aaa596;
 }
 
-.player-search button,
 .system-message button {
   border: 0;
   background: #c8ad61;
@@ -192,23 +191,16 @@ a {
   cursor: pointer;
 }
 
-.player-search button {
+.player-search__icon {
   display: grid;
   width: 3.4rem;
   min-width: 3.4rem;
   height: 3.4rem;
   place-items: center;
-  border-radius: 50%;
-  background: transparent;
   color: #cfb66b;
-  padding: 0;
 }
 
-.player-search button:hover {
-  background: rgb(207 182 107 / 0.1);
-}
-
-.player-search button svg {
+.player-search__icon svg {
   width: 1.2rem;
   height: 1.2rem;
   fill: none;
@@ -277,7 +269,6 @@ a {
 }
 
 .player-search input:focus-visible,
-.player-search button:focus-visible,
 .search-results a:focus-visible,
 .system-message a:focus-visible,
 .system-message button:focus-visible,
