@@ -141,6 +141,10 @@ a {
   text-align: left;
 }
 
+.player-search__combobox {
+  position: relative;
+}
+
 .player-search__control {
   display: flex;
   align-items: center;
@@ -211,6 +215,65 @@ a {
   stroke: currentColor;
   stroke-linecap: round;
   stroke-width: 1.8;
+}
+
+.player-suggestions {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 0.45rem);
+  right: 0;
+  left: 0;
+  max-height: min(18rem, 45vh);
+  overflow: auto;
+  margin: 0;
+  padding: 0.35rem;
+  border: 1px solid #4d493e;
+  border-radius: 1rem;
+  background: #181815;
+  box-shadow: 0 1.25rem 3.5rem rgb(0 0 0 / 0.42);
+  list-style: none;
+}
+
+.player-suggestions--status {
+  padding: 0.85rem 1rem;
+  color: #aaa596;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.72rem;
+}
+
+.player-suggestions li {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 0;
+  border-radius: 0.7rem;
+  padding: 0.6rem 0.7rem;
+  color: #eee4cf;
+  cursor: pointer;
+}
+
+.player-suggestions li:hover,
+.player-suggestions li[aria-selected='true'] {
+  background: #29281f;
+}
+
+.player-suggestions img,
+.player-suggestions__initials {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  border-radius: 50%;
+  background: #26332f;
+  color: #b9d0c8;
+  object-fit: cover;
+}
+
+.player-suggestions strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .player-search input:focus-visible,
